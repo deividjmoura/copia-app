@@ -11,7 +11,7 @@ function UploadForm() {
     for (let i = 0; i < files.length; i++) {
       formData.append('file', files[i]);
     }
-    fetch('http://192.168.1.10:7899/upload', {
+    fetch('http://192.168.1.10:4566/upload', {
       method: 'POST',
       body: formData
     })
@@ -36,7 +36,7 @@ function UploadForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} action="http://192.168.1.10:7899/upload" method="POST" encType="multipart/form-data">
+    <form onSubmit={handleSubmit} action="http://192.168.1.10:4566/upload" method="POST" encType="multipart/form-data">
       <div className="form-container">
         <label>
           <input type="file" onChange={handleChange} multiple />
