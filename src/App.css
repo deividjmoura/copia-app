@@ -7,6 +7,8 @@ body {
 }
 
 h2 {
+  font-size: 5vh;
+  color: #fff;
   margin-top: 5vh;
   margin-left: 5vh;
 }
@@ -20,11 +22,12 @@ h2 {
 }
 
 .right-image {
-  height: 70vh;
+  height: 90vh;
   position: absolute;
   top: 0;
   right: 0;
   margin: 20px;
+  z-index: -1;
 }
 
 .blue-button {
@@ -79,7 +82,8 @@ h2 {
   }
 
   .right-image {
-    height: 26vh;
+    height: 50vh;
+    z-index: -1;
     /*display: none;*/
   }
 }
