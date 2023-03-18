@@ -20,5 +20,5 @@ C --> D((pix))
 ## Stack utilizada
 
  
-**Front-end:** React
-**Back-end:** Node, Express
+**Front-end:** React, Bootstrap
+**Back-end:** Node, Express, MySQL, Axios
