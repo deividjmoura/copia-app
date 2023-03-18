@@ -1,54 +1,39 @@
-import React, { useState } from "react";
-import '../App.css';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-function UploadForm() {
-  const [files, setFiles] = useState([]);
-  const [error, setError] = useState(null);
+function FileUpload() {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isFilePicked, setIsFilePicked] = useState(false);
+
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+    setIsFilePicked(true);
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('file', files[i]);
-    }
-    fetch('http://192.168.1.10:4566/upload', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.text())
-    .then(result => {
-      setError(null);
-    })
-    .catch(err => {
-      setError(err.message);
-    });
-  }
+    formData.append('file', selectedFile);
 
-  const handleChange = (e) => {
-    const selectedFiles = e.target.files;
-    if (selectedFiles && selectedFiles.length > 0) {
-      const fileList = Array.from(selectedFiles);
-      setFiles(fileList);
-      setError(null);
-    } else {
-      setError('Por favor, selecione um arquivo válido (PDF, DOC, DOCX, JPG, JPEG, PNG)');
-    }
-  }
+    axios.post('http://localhost:1233/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    }).then((response) => {
+      console.log(response.data);
+    }).catch((error) => {
+      console.error(error);
+    });
+  };
 
   return (
-    <form onSubmit={handleSubmit} action="http://192.168.1.10:4566/upload" method="POST" encType="multipart/form-data">
-      <div className="form-container">
-        <label>
-          <input type="file" onChange={handleChange} multiple />
-          <span>Selecione um ou mais arquivos</span>
-        </label>
-        <div className="output">
-          {error && <div className="error">{error}</div>}
-        </div>
-        <button type="submit" className="blue-button">Enviar</button>
-      </div>
-    </form>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input type="file" name="file" onChange={handleFileChange} />
+        <button type="submit" disabled={!isFilePicked}>Enviar</button>
+      </form>
+    </div>
   );
 }
 
-export default UploadForm;
+export default FileUpload;
