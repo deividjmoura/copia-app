@@ -6,33 +6,49 @@ const SalesModal = ({ isOpen, onClose }) => {
   const [metaMensal, setMetaMensal] = useState(0);
   const [novoValorMeta, setNovoValorMeta] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
-  const userIdDeivid = 'mfIyuB4gPOfvmf0ivaWOFXOPbqn2'; // ID do usuário com permissão de alterar a meta
+  const [totalVendas, setTotalVendas] = useState(0);
+
+  const userIdDeivid = 'mfIyuB4gPOfvmf0ivaWOFXOPbqn2'; 
 
   useEffect(() => {
-    // Carregar a meta mensal do banco de dados
-    firebase.database().ref('metaMensal').once('value')
-      .then(snapshot => {
+    const fetchMetaMensal = () => {
+      firebase.database().ref('metaMensal').on('value', (snapshot) => {
         const meta = snapshot.val();
         if (meta !== null) {
           setMetaMensal(meta);
         }
-      })
-      .catch(error => {
-        console.error('Erro ao buscar meta mensal:', error);
       });
+    };
 
-    // Verificar se há um usuário autenticado
+    const fetchTotalVendas = () => {
+      firebase.database().ref('sales').on('value', (snapshot) => {
+        let total = 0;
+        snapshot.forEach(childSnapshot => {
+          const salesData = childSnapshot.val();
+          Object.values(salesData).forEach(sale => {
+            total += sale.value;
+          });
+        });
+        setTotalVendas(total);
+      });
+    };
+
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
+        fetchMetaMensal();
+        fetchTotalVendas();
       } else {
         setCurrentUser(null);
       }
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      firebase.database().ref('metaMensal').off('value');
+      firebase.database().ref('sales').off('value');
+    };
   }, []);
 
-  // Atualizar a meta mensal no banco de dados
   const handleUpdateMetaMensal = () => {
     firebase.database().ref('metaMensal').set(parseFloat(novoValorMeta))
       .then(() => {
@@ -44,6 +60,8 @@ const SalesModal = ({ isOpen, onClose }) => {
       });
   };
 
+  const faltaParaMeta = metaMensal - totalVendas;
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -52,6 +70,7 @@ const SalesModal = ({ isOpen, onClose }) => {
         <ModalCloseButton />
         <ModalBody>
           <Text>R$ {metaMensal}</Text>
+          <Text>Falta: R$ {faltaParaMeta}</Text>
           {currentUser && currentUser.uid === userIdDeivid && (
             <FormControl mt={4}>
               <FormLabel>Novo Valor da Meta Mensal (R$)</FormLabel>
