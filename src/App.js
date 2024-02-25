@@ -1,23 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import './App.css'; // Importe o arquivo App.css
+import { VStack, Heading } from '@chakra-ui/react';
+import SignUpForm from './components/SignUpform'; // Importe o componente SignUpForm
+import LoginForm from './components/LoginForm'; // Importe o componente LoginForm
 
 function App() {
+  React.useEffect(() => {
+    console.log("Página carregada com sucesso!");
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="background-container">
+      <div className="content-container">
+        <Heading as="h1" size="2xl" mb={8} color="white">Dashboard de Vendas</Heading>
+        <VStack spacing={8} align="flex-start">
+          <SignUpForm />
+          <LoginForm />
+        </VStack>
+      </div>
     </div>
   );
 }
