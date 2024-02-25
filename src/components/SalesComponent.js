@@ -4,12 +4,14 @@ import firebase from 'firebase/compat/app';
 import "firebase/database";
 import "firebase/auth";
 import { format } from 'date-fns';
+import SalesModal from './SalesModal'; // Importação do componente SalesModal
 
 const SalesComponent = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [sales, setSales] = useState([]);
   const [companyName, setCompanyName] = useState("");
   const [value, setValue] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar a abertura do modal
 
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
@@ -60,6 +62,14 @@ const SalesComponent = () => {
     }
   };
 
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <Flex direction="column" align="center">
       {currentUser ? (
@@ -76,6 +86,7 @@ const SalesComponent = () => {
               onChange={(e) => setValue(e.target.value)}
             />
             <Button onClick={handleAddSale}>Adicionar Venda</Button>
+            <Button onClick={handleOpenModal} className="graph-button">Gráfico</Button> {/* Botão para abrir o modal */}
           </Box>
           <Table>
             <Tbody>
@@ -96,6 +107,7 @@ const SalesComponent = () => {
         <LoginForm />
       )}
 
+      <SalesModal isOpen={isModalOpen} onClose={handleCloseModal} /> {/* Renderização do modal */}
     </Flex>
   );
 };

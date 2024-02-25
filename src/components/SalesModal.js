@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, Button } from "@chakra-ui/react";
 import firebase from 'firebase/compat/app';
 
+
 const SalesModal = ({ isOpen, onClose }) => {
   const [metaMensal, setMetaMensal] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);

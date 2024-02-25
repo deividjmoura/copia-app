@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { ChakraProvider, VStack, Heading, Button } from '@chakra-ui/react';
+import { ChakraProvider, VStack, Heading } from '@chakra-ui/react';
 import SignUpForm from './components/SignUpform';
 import LoginForm from './components/LoginForm';
 import SalesComponent from './components/SalesComponent';
-import SalesModal from './components/SalesModal'; // Importação do componente SalesModal
 import firebase from 'firebase/compat/app';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar a abertura do modal
 
   const handleLogout = () => {
     firebase.auth().signOut().then(() => {
@@ -19,22 +17,9 @@ const App = () => {
       console.error('Erro ao fazer logout:', error);
     });
   };
-  
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
 
   useEffect(() => {
     console.log("Página carregada com sucesso!");
-    // Verificar se o usuário está autenticado
-    // Aqui você pode usar o Firebase Auth para verificar a autenticação
-    // e definir o estado de isLoggedIn conforme necessário
-    // Exemplo:
     firebase.auth().onAuthStateChanged(user => {
       setIsLoggedIn(!!user);
     });
@@ -58,16 +43,14 @@ const App = () => {
             )}
           </VStack>
         </div>
-        <div className="logout-container"> {/* Div para posicionar o botão de logout ao lado do modal */}
+        <div className="logout-container">
           {isLoggedIn && (
             <>
-              <Button onClick={handleOpenModal} colorScheme="blue">Abrir Modal</Button> {/* Botão para abrir o modal */}
-              <button onClick={() => handleLogout()} className="logout-button">Logout</button>
+              <button onClick={handleLogout} className="logout-button">Logout</button>
             </>
           )}
         </div>
       </div>
-      <SalesModal isOpen={isModalOpen} onClose={handleCloseModal} /> {/* Renderização do modal */}
     </ChakraProvider>
   );
 };

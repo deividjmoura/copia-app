@@ -30,7 +30,7 @@ body, h1, p, ul, li {
     color: #333;
   }
   .button-container {
-    display: flex;
+    display: fixed;
   }
   
   .button-container button {
@@ -46,5 +46,9 @@ body, h1, p, ul, li {
     right: 10px;
   }
   
-
+  .graph-button {
+    position: absolute;
+    top: 0px;
+    right: -5px;
+  }
   
