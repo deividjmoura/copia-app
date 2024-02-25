@@ -10,29 +10,29 @@ const SalesModal = ({ isOpen, onClose }) => {
 
   const userIdDeivid = 'mfIyuB4gPOfvmf0ivaWOFXOPbqn2'; 
 
-  useEffect(() => {
-    const fetchMetaMensal = () => {
-      firebase.database().ref('metaMensal').on('value', (snapshot) => {
-        const meta = snapshot.val();
-        if (meta !== null) {
-          setMetaMensal(meta);
-        }
-      });
-    };
+  const fetchMetaMensal = () => {
+    firebase.database().ref('metaMensal').on('value', (snapshot) => {
+      const meta = snapshot.val();
+      if (meta !== null) {
+        setMetaMensal(meta);
+      }
+    });
+  };
 
-    const fetchTotalVendas = () => {
-      firebase.database().ref('sales').on('value', (snapshot) => {
-        let total = 0;
-        snapshot.forEach(childSnapshot => {
-          const salesData = childSnapshot.val();
-          Object.values(salesData).forEach(sale => {
-            total += sale.value;
-          });
+  const fetchTotalVendas = () => {
+    firebase.database().ref('sales').on('value', (snapshot) => {
+      let total = 0;
+      snapshot.forEach(childSnapshot => {
+        const salesData = childSnapshot.val();
+        Object.values(salesData).forEach(sale => {
+          total += sale.value;
         });
-        setTotalVendas(total);
       });
-    };
+      setTotalVendas(total);
+    });
+  };
 
+  useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);

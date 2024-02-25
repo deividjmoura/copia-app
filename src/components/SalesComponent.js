@@ -62,6 +62,16 @@ const SalesComponent = () => {
     }
   };
 
+  const handleEditSale = (saleId) => {
+    const saleToEdit = sales.find((sale) => sale.id === saleId);
+    if (!saleToEdit) {
+      console.error(`Venda com ID ${saleId} não encontrada`);
+      return;
+    };
+    // Implemente a lógica para editar a venda com o ID fornecido
+    console.log(`Editar venda com ID: ${saleId}`);
+  };
+
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -96,6 +106,7 @@ const SalesComponent = () => {
                   <Td>{sale.value}</Td>
                   <Td>{format(new Date(sale.timestamp), "dd/MM/yyyy HH:mm")}</Td>
                   <Td>
+                    <Button onClick={() => handleEditSale(sale.id)}>Editar</Button>
                     <Button onClick={() => handleDeleteSale(sale.id)}>Excluir</Button>
                   </Td>
                 </Tr>
