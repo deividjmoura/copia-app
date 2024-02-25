@@ -60,14 +60,6 @@ const SalesComponent = () => {
     }
   };
 
-  const handleLogout = () => {
-    firebase.auth().signOut().then(() => {
-      setCurrentUser(null);
-    }).catch((error) => {
-      console.error('Erro ao fazer logout:', error);
-    });
-  };
-
   return (
     <Flex direction="column" align="center">
       {currentUser ? (
@@ -103,9 +95,7 @@ const SalesComponent = () => {
       ) : (
         <LoginForm />
       )}
-      {currentUser && (
-        <Button onClick={handleLogout} mt={4}>Logout</Button>
-      )}
+
     </Flex>
   );
 };

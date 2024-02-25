@@ -1,75 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, Button, Input } from "@chakra-ui/react";
-import { Bar } from 'react-chartjs-2';
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, Button } from "@chakra-ui/react";
 import firebase from 'firebase/compat/app';
-import 'firebase/compat/database';
 
 const SalesModal = ({ isOpen, onClose }) => {
-  const [monthlyGoal, setMonthlyGoal] = useState(0);
-  const [salesData, setSalesData] = useState([]);
+  const [metaMensal, setMetaMensal] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
+
 
   useEffect(() => {
-    fetchSalesData();
-  }, []);
-  
-  const fetchSalesData = () => {
-    const salesRef = firebase.database().ref('sales');
-    salesRef.once('value', (snapshot) => {
-      const salesDataFromDatabase = snapshot.val();
-      if (salesDataFromDatabase) { // Verifica se os dados não são null ou undefined
-        const allSales = Object.values(salesDataFromDatabase);
-        const salesArray = allSales.flatMap(userSales => Object.values(userSales));
-        setSalesData(salesArray);
+    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUser(user);
+        // Verifica se o usuário tem permissão para atualizar a meta
+        if (user.uid === 'be6bc8eb-c5cf-4711-98ce-cc9edc5a5f4c') {
+          fetchMetaMensal();
+        }
       } else {
-        setSalesData([]);
+        setCurrentUser(null);
       }
     });
+    return () => unsubscribe();
+  }, []);
+
+  const fetchMetaMensal = () => {
+    firebase.database().ref('metaMensal').once('value')
+      .then(snapshot => {
+        const meta = snapshot.val();
+        setMetaMensal(meta);
+      })
+      .catch(error => {
+        console.error('Erro ao buscar meta mensal:', error);
+      });
   };
 
-  const handleGoalChange = (event) => {
-    const newGoal = parseFloat(event.target.value);
-    const newSalesData = salesData.map(sale => ({
-      ...sale,
-      adjustedValue: sale.value - newGoal,
-    }));
-    setMonthlyGoal(newGoal);
-    setSalesData(newSalesData);
-  };
-
-  const chartData = {
-    labels: salesData.map(sale => sale.salesperson), // Array com os nomes dos vendedores
-    datasets: [
-      {
-        label: 'Vendas por Vendedor',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1,
-        data: salesData.map(sale => sale.value), // Array com os valores das vendas
-      },
-      {
-        label: 'Meta Mensal',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 1,
-        data: Array(salesData.length).fill(monthlyGoal), // Array com o valor da meta mensal para cada vendedor
-      },
-    ],
+  const handleUpdateMetaMensal = () => {
+    // Verifica se o usuário está autenticado e tem permissão
+    if (currentUser && currentUser.uid === 'be6bc8eb-c5cf-4711-98ce-cc9edc5a5f4c') {
+      firebase.database().ref('metaMensal').set(metaMensal)
+        .then(() => {
+          console.log('Meta mensal atualizada com sucesso!');
+          onClose(); // Fecha o modal após a atualização
+        })
+        .catch(error => {
+          console.error('Erro ao atualizar meta mensal:', error);
+        });
+    }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Dados de Todos os Usuários</ModalHeader>
+        <ModalHeader>Atualizar Meta Mensal</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Bar data={chartData} />
-          <Input type="number" placeholder="Meta Mensal" value={monthlyGoal} onChange={handleGoalChange} />
+          <FormControl>
+            <FormLabel>Meta Mensal (R$)</FormLabel>
+            <Input type="number" value={metaMensal} onChange={(e) => setMetaMensal(e.target.value)} />
+          </FormControl>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Fechar
+          <Button colorScheme="blue" mr={3} onClick={handleUpdateMetaMensal}>
+            Atualizar
           </Button>
+          <Button onClick={onClose}>Cancelar</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
