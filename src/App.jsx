@@ -1,10 +1,9 @@
-// App.jsx
 
 import React, { useState, useEffect } from 'react';
 import { ChakraProvider, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@chakra-ui/react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getDatabase, ref, set, onValue, off } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
@@ -14,7 +13,7 @@ import DashboardVendas from './components/DashboardVendas';
 
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBSwuiGMLQl7FjKE8TM68u4fEjQM-p0uV0",
+  apiKey: "sua-api-key",
   authDomain: "dash-vendas-54ab3.firebaseapp.com",
   databaseURL: "https://dash-vendas-54ab3-default-rtdb.firebaseio.com",
   projectId: "dash-vendas-54ab3",
@@ -22,10 +21,14 @@ const firebaseConfig = {
   messagingSenderId: "527332699500",
   appId: "1:527332699500:web:301ccdd03fae600cbe5749"
 };
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
-const database = getDatabase(firebaseApp);
 
+// Verificar se o Firebase ainda não foi inicializado
+if (!initializeApp.apps.length) {
+  initializeApp(firebaseConfig);
+}
+
+const auth = getAuth(); // Sem parâmetros para obter a instância padrão do Firebase Auth
+const database = getDatabase(); 
 function App() {
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);

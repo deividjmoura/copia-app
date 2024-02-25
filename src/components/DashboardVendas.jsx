@@ -1,29 +1,13 @@
+// DashboardVendas.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Text, Button, Input } from '@chakra-ui/react';
-import { ref, onValue, off, get, push, set, remove } from 'firebase/database';
-import { initializeApp } from 'firebase/app';
+import { ref, onValue, off, push, set } from 'firebase/database';
 import { getDatabase } from 'firebase/database';
+import { deleteSale } from '../Utils'; // Importe a função deleteSale
+import firebaseApp from "../firebaseConfig";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBSwuiGMLQl7FjKE8TM68u4fEjQM-p0uV0",
-  authDomain: "dash-vendas-54ab3.firebaseapp.com",
-  databaseURL: "https://dash-vendas-54ab3-default-rtdb.firebaseio.com",
-  projectId: "dash-vendas-54ab3",
-  storageBucket: "dash-vendas-54ab3.appspot.com",
-  messagingSenderId: "527332699500",
-  appId: "1:527332699500:web:301ccdd03fae600cbe5749"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
-async function setupDatabase() {
-  try {
-    // Configurações iniciais do banco de dados, se necessário
-  } catch (error) {
-    console.error('Erro ao configurar o banco de dados:', error);
-  }
-}
 
 const DashboardVendas = ({ user, handleLogout }) => {
   const [totalSales, setTotalSales] = useState(0);
@@ -113,44 +97,8 @@ const DashboardVendas = ({ user, handleLogout }) => {
   };
 
   const handleDeleteSale = async (saleId) => {
-    try {
-      if (saleId) {
-        console.log('Tentativa de exclusão de venda:', saleId);
-        // Verificar se o usuário está autenticado
-        if (!user || !user.uid) {
-          console.error('Usuário não autenticado. Não é possível excluir a venda.');
-          return;
-        }
-    
-        // Verificar se o usuário está autorizado a excluir a venda
-        const saleRef = ref(database, `users/${user.uid}/sales/${saleId}`); // Corrigido para usar a referência correta
-        const saleSnapshot = await get(saleRef);
-        const saleData = saleSnapshot.val();
-    
-        if (!saleData) {
-          console.error('Venda não encontrada ou não autorizada para exclusão.');
-          return;
-        }
-    
-        if (saleData.userId !== user.uid) {
-          console.error('Usuário não autorizado para excluir esta venda.');
-          return;
-        }
-    
-        // Remover a venda
-        await remove(saleRef);
-        console.log('Venda excluída com sucesso:', saleId);
-    
-        // Atualizar a lista de vendas após a exclusão
-        setSalesList(prevSales => prevSales.filter(sale => sale.id !== saleId));
-      }
-    } catch (error) {
-      console.error('Erro ao excluir venda:', error);
-    }
-};
-
-  
-  
+    deleteSale(user, saleId, setSalesList); // Use a função deleteSale importada
+  };
 
   return (
     <Box>
