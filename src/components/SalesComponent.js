@@ -45,9 +45,9 @@ const SalesComponent = () => {
     if (currentUser) {
       const newSaleRef = firebase.database().ref(`sales/${currentUser.uid}`).push();
       newSaleRef.set({
-        companyName,
-        value,
-        timestamp: firebase.database.ServerValue.TIMESTAMP, // Adiciona timestamp do Firebase
+        companyName: companyName,
+        value: parseFloat(value),
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
       });
       setCompanyName("");
       setValue("");
@@ -60,11 +60,19 @@ const SalesComponent = () => {
     }
   };
 
+  const handleLogout = () => {
+    firebase.auth().signOut().then(() => {
+      setCurrentUser(null);
+    }).catch((error) => {
+      console.error('Erro ao fazer logout:', error);
+    });
+  };
+
   return (
     <Flex direction="column" align="center">
       {currentUser ? (
         <>
-          <Box mb={4} mt={10} textAlign="center"> {/* Adiciona margem superior e centraliza */}
+          <Box mb={4} mt={10} textAlign="center">
             <Input
               placeholder="Nome da Empresa"
               value={companyName}
@@ -83,7 +91,7 @@ const SalesComponent = () => {
                 <Tr key={sale.id}>
                   <Td>{sale.companyName}</Td>
                   <Td>{sale.value}</Td>
-                  <Td>{format(new Date(sale.timestamp), "dd/MM/yyyy HH:mm")}</Td> {/* Formata o timestamp */}
+                  <Td>{format(new Date(sale.timestamp), "dd/MM/yyyy HH:mm")}</Td>
                   <Td>
                     <Button onClick={() => handleDeleteSale(sale.id)}>Excluir</Button>
                   </Td>
@@ -94,6 +102,9 @@ const SalesComponent = () => {
         </>
       ) : (
         <LoginForm />
+      )}
+      {currentUser && (
+        <Button onClick={handleLogout} mt={4}>Logout</Button>
       )}
     </Flex>
   );

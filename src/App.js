@@ -26,12 +26,10 @@ function App() {
     // Aqui você pode adicionar a lógica de logout, por exemplo, usando Firebase Auth
     // firebase.auth().signOut();
     setIsLoggedIn(false);
-    window.location.reload(); // Recarregar a página após o logout
   };
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    window.location.reload(); // Recarregar a página após o login
   };
 
   const handleOpenModal = () => {
@@ -48,15 +46,12 @@ function App() {
         <div className="content-container">
           <Heading as="h1" size="2xl" mb={8} color="white">Dashboard de Vendas</Heading>
           <VStack spacing={8} align="center">
-            {isLoggedIn ? (
-              <SalesComponent />
-            ) : (
-              <>
-                <div className="button-container">
-                  <SignUpForm />
-                  <LoginForm onLogin={handleLogin} />
-                </div>
-              </>
+            {isLoggedIn ? <SalesComponent /> : null} {/* Renderiza SalesComponent apenas se o usuário estiver logado */}
+            {!isLoggedIn && (
+              <div className="button-container">
+                <SignUpForm />
+                <LoginForm onLogin={handleLogin} />
+              </div>
             )}
           </VStack>
         </div>
