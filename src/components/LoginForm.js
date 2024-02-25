@@ -55,10 +55,10 @@ const LoginForm = () => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleLogin}>
+            <Button onClick={handleLogin}>
               Login
             </Button>
-            <Button onClick={() => setIsOpen(false)}>Cancelar</Button>
+            <Button variant="solid" colorScheme="green" _hover={{ bg: "green.600" }} mx={2}onClick={() => setIsOpen(false)}>Cancelar</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

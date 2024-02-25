@@ -35,7 +35,7 @@ const SignUpForm = () => {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)}>Cadastrar</Button>
+      <Button variant="solid" colorScheme="blue" _hover={{ bg: "blue.600" }} mx={2} onClick={() => setIsOpen(true)}>Cadastrar</Button>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ModalOverlay />
