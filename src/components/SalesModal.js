@@ -4,16 +4,27 @@ import firebase from 'firebase/compat/app';
 
 const SalesModal = ({ isOpen, onClose }) => {
   const [metaMensal, setMetaMensal] = useState(0);
+  const [novoValorMeta, setNovoValorMeta] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
-  const userIdDeivid = 'mfIyuB4gPOfvmf0ivaWOFXOPbqn2';
+  const userIdDeivid = 'mfIyuB4gPOfvmf0ivaWOFXOPbqn2'; // ID do usuário com permissão de alterar a meta
 
   useEffect(() => {
+    // Carregar a meta mensal do banco de dados
+    firebase.database().ref('metaMensal').once('value')
+      .then(snapshot => {
+        const meta = snapshot.val();
+        if (meta !== null) {
+          setMetaMensal(meta);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao buscar meta mensal:', error);
+      });
+
+    // Verificar se há um usuário autenticado
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
-        if (user.uid === userIdDeivid) {
-          fetchMetaMensal();
-        }
       } else {
         setCurrentUser(null);
       }
@@ -21,55 +32,36 @@ const SalesModal = ({ isOpen, onClose }) => {
     return () => unsubscribe();
   }, []);
 
-  const fetchMetaMensal = () => {
-    firebase.database().ref('metaMensal').once('value')
-      .then(snapshot => {
-        const meta = snapshot.val();
-        setMetaMensal(meta);
+  // Atualizar a meta mensal no banco de dados
+  const handleUpdateMetaMensal = () => {
+    firebase.database().ref('metaMensal').set(parseFloat(novoValorMeta))
+      .then(() => {
+        console.log('Meta mensal atualizada com sucesso!');
+        setMetaMensal(parseFloat(novoValorMeta));
       })
       .catch(error => {
-        console.error('Erro ao buscar meta mensal:', error);
+        console.error('Erro ao atualizar meta mensal:', error);
       });
-  };
-
-  const handleUpdateMetaMensal = () => {
-    if (currentUser && currentUser.uid === userIdDeivid) {
-      firebase.database().ref('metaMensal').set(metaMensal)
-        .then(() => {
-          console.log('Meta mensal atualizada com sucesso!');
-          onClose();
-          // Adiciona um toast informativo para o usuário Deivid
-          // Adicione aqui o código para exibir o toast
-        })
-        .catch(error => {
-          console.error('Erro ao atualizar meta mensal:', error);
-        });
-    }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Atualizar Meta Mensal</ModalHeader>
+        <ModalHeader>Meta Mensal</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {currentUser && currentUser.uid === userIdDeivid ? (
-            <FormControl>
-              <FormLabel>Meta Mensal (R$)</FormLabel>
-              <Input type="number" value={metaMensal} onChange={(e) => setMetaMensal(e.target.value)} />
+          <Text>R$ {metaMensal}</Text>
+          {currentUser && currentUser.uid === userIdDeivid && (
+            <FormControl mt={4}>
+              <FormLabel>Novo Valor da Meta Mensal (R$)</FormLabel>
+              <Input type="number" value={novoValorMeta} onChange={(e) => setNovoValorMeta(e.target.value)} />
+              <Button mt={4} colorScheme="blue" onClick={handleUpdateMetaMensal}>Salvar</Button>
             </FormControl>
-          ) : (
-            <Text>Meta Mensal: {metaMensal}</Text>
           )}
         </ModalBody>
         <ModalFooter>
-          {currentUser && currentUser.uid === userIdDeivid && (
-            <Button colorScheme="blue" mr={3} onClick={handleUpdateMetaMensal}>
-              Atualizar
-            </Button>
-          )}
-          <Button onClick={onClose}>Cancelar</Button>
+          <Button onClick={onClose}>Fechar</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
