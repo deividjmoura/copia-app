@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-image: url('https://media.giphy.com/media/TmascnOOortP3P6c0y/giphy.gif');
+  background-size: cover;
+  background-position: center;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  background-color: rgba(255, 255, 255, 0.8); /* Cor de fundo opaca para o conteúdo */
+  padding: 20px;
+  border-radius: 10px;
+}
