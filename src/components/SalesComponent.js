@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Box, Input, Button, Table, Tbody, Tr, Td, IconButton, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody } from "@chakra-ui/react";
+import { Flex, Box, Input, Button, Table, Thead, Tbody, Tr, Th, Td, IconButton, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import firebase from 'firebase/compat/app';
 import "firebase/database";
@@ -12,6 +12,7 @@ const SalesComponent = () => {
   const [sales, setSales] = useState([]);
   const [companyName, setCompanyName] = useState("");
   const [value, setValue] = useState("");
+  const [pvCmd, setPvCmd] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -48,12 +49,15 @@ const SalesComponent = () => {
       newSaleRef.set({
         companyName: companyName,
         value: parseFloat(value),
+        pvCmd: parseFloat(pvCmd),
         timestamp: firebase.database.ServerValue.TIMESTAMP,
         vendedor: currentUser.uid,
       }).then(() => {
         console.log("Venda adicionada com sucesso!");
         setCompanyName("");
         setValue("");
+        setPvCmd("");
+        setIsDrawerOpen(false);
       }).catch((error) => {
         console.error("Erro ao adicionar venda:", error);
       });
@@ -109,11 +113,21 @@ const SalesComponent = () => {
             <Button onClick={handleOpenModal} className="graph-button">Gráfico</Button>
           </Box>
           <Table>
+            <Thead>
+              <Tr>
+                <Th>Empresa</Th>
+                <Th>Valor (R$)</Th>
+                <Th>CMD/PV</Th>
+                <Th>Data</Th>
+                <Th>Ações</Th>
+              </Tr>
+            </Thead>
             <Tbody>
               {sales.map((sale) => (
                 <Tr key={sale.id}>
                   <Td>{sale.companyName}</Td>
-                  <Td>{sale.value}</Td>
+                  <Td>R$ {sale.value}</Td>
+                  <Td>{sale.pvCmd}</Td>
                   <Td>{format(new Date(sale.timestamp), "dd/MM/yyyy HH:mm")}</Td>
                   <Td>
                     <IconButton onClick={() => handleEditSale(sale.id)} aria-label="Editar venda">
@@ -139,6 +153,11 @@ const SalesComponent = () => {
                   placeholder="Valor (R$)"
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
+                />
+                <Input
+                  placeholder="CMD/PV"
+                  value={pvCmd}
+                  onChange={(e) => setPvCmd(e.target.value)}
                 />
                 <Button onClick={handleAddSale}>Adicionar</Button>
               </DrawerBody>
