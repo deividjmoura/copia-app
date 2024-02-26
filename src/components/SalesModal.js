@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, Button, Text } from "@chakra-ui/react";
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, Button, Text, Flex, Box } from "@chakra-ui/react";
 import firebase from 'firebase/compat/app';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const SalesModal = ({ isOpen, onClose }) => {
   const [metaMensal, setMetaMensal] = useState(0);
   const [novoValorMeta, setNovoValorMeta] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
-  const [totalVendas, setTotalVendas] = useState(0);
+  const [vendedores, setVendedores] = useState([]);
 
-  const userIdDeivid = 'mfIyuB4gPOfvmf0ivaWOFXOPbqn2'; 
+  useEffect(() => {
+    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUser(user);
+        fetchMetaMensal();
+        fetchVendedoresData();
+      } else {
+        setCurrentUser(null);
+      }
+    });
+    return () => {
+      unsubscribe();
+      firebase.database().ref('metaMensal').off('value');
+    };
+  }, []);
 
   const fetchMetaMensal = () => {
     firebase.database().ref('metaMensal').on('value', (snapshot) => {
@@ -19,35 +34,46 @@ const SalesModal = ({ isOpen, onClose }) => {
     });
   };
 
-  const fetchTotalVendas = () => {
-    firebase.database().ref('sales').on('value', (snapshot) => {
-      let total = 0;
-      snapshot.forEach(childSnapshot => {
+  const fetchVendedoresData = () => {
+    firebase.database().ref('sales').once('value').then((snapshotSales) => {
+      const vendasPorVendedor = {};
+  
+      snapshotSales.forEach(childSnapshot => {
         const salesData = childSnapshot.val();
         Object.values(salesData).forEach(sale => {
-          total += sale.value;
+          const vendedor = sale.vendedor;
+          const valorVenda = sale.value;
+  
+          if (!vendasPorVendedor[vendedor]) {
+            vendasPorVendedor[vendedor] = 0;
+          }
+  
+          vendasPorVendedor[vendedor] += valorVenda;
         });
       });
-      setTotalVendas(total);
+  
+      const vendedoresArray = Object.entries(vendasPorVendedor).map(([userId, vendas]) => ({
+        userId: userId,
+        vendas: vendas
+      }));
+
+      // Buscar nomes de usuários com base nas IDs dos vendedores
+      Promise.all(vendedoresArray.map(vendedor => {
+        return firebase.database().ref(`users/${vendedor.userId}/name`).once('value').then(snapshot => {
+          return {
+            ...vendedor,
+            nome: snapshot.val()
+          };
+        });
+      })).then(vendedoresComNome => {
+        setVendedores(vendedoresComNome);
+      }).catch(error => {
+        console.error('Erro ao buscar nomes de usuários:', error);
+      });
+    }).catch(error => {
+      console.error('Erro ao recuperar dados de vendas:', error);
     });
   };
-
-  useEffect(() => {
-    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        setCurrentUser(user);
-        fetchMetaMensal();
-        fetchTotalVendas();
-      } else {
-        setCurrentUser(null);
-      }
-    });
-    return () => {
-      unsubscribe();
-      firebase.database().ref('metaMensal').off('value');
-      firebase.database().ref('sales').off('value');
-    };
-  }, []);
 
   const handleUpdateMetaMensal = () => {
     firebase.database().ref('metaMensal').set(parseFloat(novoValorMeta))
@@ -60,10 +86,13 @@ const SalesModal = ({ isOpen, onClose }) => {
       });
   };
 
+  // Calcular o valor total de vendas de todos os vendedores
+  const totalVendas = vendedores.reduce((total, vendedor) => total + vendedor.vendas, 0);
+  // Calcular o valor que falta para atingir a meta mensal
   const faltaParaMeta = metaMensal - totalVendas;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} size="80%">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Meta Mensal</ModalHeader>
@@ -71,7 +100,20 @@ const SalesModal = ({ isOpen, onClose }) => {
         <ModalBody>
           <Text>R$ {metaMensal}</Text>
           <Text>Falta: R$ {faltaParaMeta}</Text>
-          {currentUser && currentUser.uid === userIdDeivid && (
+          {/* Renderizando o gráfico de barras */}
+          <Flex justify="center">
+            <Box w="80%">
+              <BarChart width={800} height={400} data={vendedores}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="nome" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="vendas" fill="#8884d8" />
+              </BarChart>
+            </Box>
+          </Flex>
+          {currentUser && (
             <FormControl mt={4}>
               <FormLabel>Novo Valor da Meta Mensal (R$)</FormLabel>
               <Input type="number" value={novoValorMeta} onChange={(e) => setNovoValorMeta(e.target.value)} />

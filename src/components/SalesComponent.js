@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Box, Input, Button, Table, Tbody, Tr, Td } from "@chakra-ui/react";
+import { Flex, Box, Input, Button, Table, Tbody, Tr, Td, IconButton } from "@chakra-ui/react";
+import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import firebase from 'firebase/compat/app';
 import "firebase/database";
 import "firebase/auth";
 import { format } from 'date-fns';
-import SalesModal from './SalesModal'; // Importação do componente SalesModal
+import SalesModal from './SalesModal';
 
 const SalesComponent = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [sales, setSales] = useState([]);
   const [companyName, setCompanyName] = useState("");
   const [value, setValue] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar a abertura do modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
-        fetchSalesData(user.uid);
+        fetchSalesData(user.uid); // Passando a ID do usuário para a função fetchSalesData
       } else {
         setCurrentUser(null);
       }
@@ -26,21 +27,18 @@ const SalesComponent = () => {
   }, []);
 
   const fetchSalesData = (userId) => {
-    firebase
-      .database()
-      .ref(`sales/${userId}`)
-      .on("value", (snapshot) => {
-        const salesData = snapshot.val();
-        if (salesData) {
-          const salesList = Object.keys(salesData).map((key) => ({
-            id: key,
-            ...salesData[key],
-          }));
-          setSales(salesList);
-        } else {
-          setSales([]);
-        }
-      });
+    firebase.database().ref(`sales/${userId}`).on('value', (snapshot) => {
+      const salesData = snapshot.val();
+      if (salesData) {
+        const salesList = Object.entries(salesData).map(([saleId, sale]) => ({
+          id: saleId,
+          ...sale,
+        }));
+        setSales(salesList);
+      } else {
+        setSales([]);
+      }
+    });
   };
 
   const handleAddSale = () => {
@@ -50,26 +48,39 @@ const SalesComponent = () => {
         companyName: companyName,
         value: parseFloat(value),
         timestamp: firebase.database.ServerValue.TIMESTAMP,
+        vendedor: currentUser.uid, // Usando a ID do usuário atual como vendedor
+      }).then(() => {
+        console.log("Venda adicionada com sucesso!");
+        setCompanyName("");
+        setValue("");
+      }).catch((error) => {
+        console.error("Erro ao adicionar venda:", error);
       });
-      setCompanyName("");
-      setValue("");
     }
   };
 
   const handleDeleteSale = (saleId) => {
     if (currentUser) {
-      firebase.database().ref(`sales/${currentUser.uid}/${saleId}`).remove();
+      firebase.database().ref(`sales/${currentUser.uid}/${saleId}`).remove()
+        .then(() => {
+          console.log("Venda excluída com sucesso!");
+        }).catch((error) => {
+          console.error("Erro ao excluir venda:", error);
+        });
     }
   };
 
   const handleEditSale = (saleId) => {
-    const saleToEdit = sales.find((sale) => sale.id === saleId);
-    if (!saleToEdit) {
-      console.error(`Venda com ID ${saleId} não encontrada`);
-      return;
-    };
-    // Implemente a lógica para editar a venda com o ID fornecido
-    console.log(`Editar venda com ID: ${saleId}`);
+    const novoValor = prompt("Digite o novo valor para a venda:");
+    if (novoValor !== null && novoValor.trim() !== "") {
+      firebase.database().ref(`sales/${currentUser.uid}/${saleId}`).update({
+        value: parseFloat(novoValor),
+      }).then(() => {
+        console.log("Venda atualizada com sucesso!");
+      }).catch((error) => {
+        console.error("Erro ao atualizar venda:", error);
+      });
+    }
   };
 
   const handleOpenModal = () => {
@@ -96,7 +107,7 @@ const SalesComponent = () => {
               onChange={(e) => setValue(e.target.value)}
             />
             <Button onClick={handleAddSale}>Adicionar Venda</Button>
-            <Button onClick={handleOpenModal} className="graph-button">Gráfico</Button> {/* Botão para abrir o modal */}
+            <Button onClick={handleOpenModal} className="graph-button">Gráfico</Button>
           </Box>
           <Table>
             <Tbody>
@@ -106,8 +117,10 @@ const SalesComponent = () => {
                   <Td>{sale.value}</Td>
                   <Td>{format(new Date(sale.timestamp), "dd/MM/yyyy HH:mm")}</Td>
                   <Td>
-                    <Button onClick={() => handleEditSale(sale.id)}>Editar</Button>
-                    <Button onClick={() => handleDeleteSale(sale.id)}>Excluir</Button>
+                    <IconButton onClick={() => handleEditSale(sale.id)} aria-label="Editar venda">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton icon={<DeleteIcon />} onClick={() => handleDeleteSale(sale.id)} colorScheme="red" />
                   </Td>
                 </Tr>
               ))}
@@ -118,7 +131,7 @@ const SalesComponent = () => {
         <LoginForm />
       )}
 
-      <SalesModal isOpen={isModalOpen} onClose={handleCloseModal} /> {/* Renderização do modal */}
+      <SalesModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </Flex>
   );
 };
