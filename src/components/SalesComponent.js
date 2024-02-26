@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Box, Input, Button, Table, Tbody, Tr, Td, IconButton } from "@chakra-ui/react";
+import { Flex, Box, Input, Button, Table, Tbody, Tr, Td, IconButton, Drawer, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import firebase from 'firebase/compat/app';
 import "firebase/database";
@@ -13,12 +13,13 @@ const SalesComponent = () => {
   const [companyName, setCompanyName] = useState("");
   const [value, setValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
-        fetchSalesData(user.uid); // Passando a ID do usuário para a função fetchSalesData
+        fetchSalesData(user.uid);
       } else {
         setCurrentUser(null);
       }
@@ -48,7 +49,7 @@ const SalesComponent = () => {
         companyName: companyName,
         value: parseFloat(value),
         timestamp: firebase.database.ServerValue.TIMESTAMP,
-        vendedor: currentUser.uid, // Usando a ID do usuário atual como vendedor
+        vendedor: currentUser.uid,
       }).then(() => {
         console.log("Venda adicionada com sucesso!");
         setCompanyName("");
@@ -91,22 +92,20 @@ const SalesComponent = () => {
     setIsModalOpen(false);
   };
 
+  const handleOpenDrawer = () => {
+    setIsDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+  };
+
   return (
     <Flex direction="column" align="center">
       {currentUser ? (
         <>
           <Box mb={4} mt={10} textAlign="center">
-            <Input
-              placeholder="Nome da Empresa"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-            />
-            <Input
-              placeholder="Valor (R$)"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-            />
-            <Button onClick={handleAddSale}>Adicionar Venda</Button>
+            <Button onClick={handleOpenDrawer}>Adicionar Venda</Button>
             <Button onClick={handleOpenModal} className="graph-button">Gráfico</Button>
           </Box>
           <Table>
@@ -126,6 +125,25 @@ const SalesComponent = () => {
               ))}
             </Tbody>
           </Table>
+          <Drawer placement="right" onClose={handleCloseDrawer} isOpen={isDrawerOpen}>
+            <DrawerOverlay />
+            <DrawerContent>
+              <DrawerHeader>Cadastro de Venda</DrawerHeader>
+              <DrawerBody>
+                <Input
+                  placeholder="Nome da Empresa"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+                <Input
+                  placeholder="Valor (R$)"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+                <Button onClick={handleAddSale}>Adicionar</Button>
+              </DrawerBody>
+            </DrawerContent>
+          </Drawer>
         </>
       ) : (
         <LoginForm />
